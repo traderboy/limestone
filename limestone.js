@@ -425,7 +425,7 @@ exports.SphinxClient = function() {
       req_length.push.int32(request_buf.length - 8);
       req_length.toBuffer().copy(request_buf, 4, 0);
 
-	  //console.log('Sending search request of ' + request_buf.length + ' bytes ');
+        if( sdebug ) console.log('Sending search request of ' + request_buf.length + ' bytes');
       _enqueue(request_buf, callback, Sphinx.clientCommand.SEARCH);
 
     };
@@ -575,7 +575,7 @@ exports.SphinxClient = function() {
             data    : new Buffer(0),
             parseHeader : function() {
                 if (this.status === null && this.data.length >= 8) {
-                    // console.log('Answer length: ' + (this.data.length));
+                    if( sdebug ) console.log('Answer length: ' + (this.data.length));
 					var decoder = this.data.toReader();
                     // var decoder = new bits.Decoder(this.data);
 
@@ -584,7 +584,7 @@ exports.SphinxClient = function() {
                     this.length  = decoder.int32();
                     if( sdebug ) console.log('Receiving answer with status ' + this.status + ', version ' + this.version + ' and length ' + this.length);
 
-		    this.data = this.data.slice(8, this.data.length);
+		            this.data = this.data.slice(8, this.data.length);
                     // this.data = decoder.string(this.data.length - 8);
                 }
             },
@@ -603,21 +603,26 @@ exports.SphinxClient = function() {
                 return this.data.length >= this.length;
             },
             checkResponse : function(search_command) {
+                if( sdebug ) console.log('length: ', this.length, this.data.length );
+                if( sdebug ) console.log('version: ', this.version, search_command );
+                if( sdebug ) console.log('status: ', this.status, ' (Warning=', Sphinx.statusCode.WARNING, ', Error=', Sphinx.statusCode.ERROR, ')' );
+
                 var errmsg = '';
                 if (this.length !== this.data.length) {
-                    errmsg += "Failed to read searchd response (status=" + this.status + ", ver=" + this.version + ", len=" + this.length + ", read=" + this.data.length + ")";
+                    errmsg += "Failed to read searchd response (status=" + this.status + ", ver=" + this.version + ", len=" + this.length + ", read=" + this.data.length + ")\n";
                 }
 
                 if (this.version < search_command) {
-                    errmsg += "Searchd command older than client's version, some options might not work";
+                    errmsg += "Searchd command older than client's version, some options might not work (" + this.version + "," + search_command + ")\n";
                 }
 
                 if (this.status == Sphinx.statusCode.WARNING) {
-                    errmsg += "Server issued WARNING: " + this.data;
+                    errmsg += "Server issued WARNING: " + this.data.slice(4) + "\n";
                 }
 
                 if (this.status == Sphinx.statusCode.ERROR) {
-                    errmsg += "Server issued ERROR: " + this.data;
+                    errmsg += "Server issued ERROR: " + this.data.slice(4) + "\n";
+                    if( sdebug ) console.log(this.data);
                 }
                 if (this.status == Sphinx.statusCode.RETRY){
                     errmsg += "Server issued RETRY: " + this.data;
@@ -633,7 +638,9 @@ exports.SphinxClient = function() {
                     _dequeue();
                     var errmsg = this.checkResponse(search_command);
                     if (!errmsg) {
+                        if( sdebug ) console.log()
                         answer = parseResponse(cloned, search_command);
+                        if( sdebug ) console.log('limestone: answer.length ', answer )
                     }
                     query_callback(errmsg, answer);
                 }
@@ -646,19 +653,24 @@ exports.SphinxClient = function() {
 	    return parseSearchResponse(data);
 	} else if (search_command == Sphinx.clientCommand.EXCERPT) {
 	    return parseExcerptResponse(data);
-	}
+	} else {
+        if( sdebug ) console.log('limestone: invalid search_comand value ',search_command);
+    }
     }
 
     var parseSearchResponse = function (data) {
+        if( sdebug ) console.log('limestone: parseSearchResponse ');
         var output = {};
         // var response = new bits.Decoder(data);
         var response = data.toReader();
         var i;
         output.status = response.int32();
+        if( sdebug ) console.log('limestone: output.status ', output.status);
 	if (output.status != 0) {
 		return(response.lstring());
 	}
         output.num_fields = response.int32();
+        if( sdebug ) console.log('limestone: output.num_fields ', output.num_fields);
 
         output.fields = [];
         output.attributes = [];
@@ -674,6 +686,7 @@ exports.SphinxClient = function() {
         }
 
         output.num_attrs = response.int32();
+        if( sdebug ) console.log('limestone: output.num_attrs ', output.num_attrs);
 
         // Get attributes
         for (i = 0; i < output.num_attrs; i++) {
@@ -686,6 +699,7 @@ exports.SphinxClient = function() {
 
         output.match_count = response.int32();
         output.id64 = response.int32();
+        if( sdebug ) console.log('limestone: match_count ', output.match_count);
 
         // Get matches
         for (i = 0; i < output.match_count; i++) {
@@ -750,7 +764,6 @@ exports.SphinxClient = function() {
             }
 
             output.matches.push(match);
-
         }
 
         output.total = response.int32();
