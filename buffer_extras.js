@@ -39,7 +39,13 @@ proto.int32Write = function int32Write(number, offset) {
   this[offset + 3] = number >>> 0;
 };
 
-//Writes a 64 bit integer at offset - ok, it says it does, 
+// Writes a 32 bit float at offset
+proto.float32Write = function float32Write(number, offset) {
+    offset = offset || 0;
+    require('buffer_ieee754').writeIEEE754(this, number, offset, true, 23, 4);
+};
+
+//Writes a 64 bit integer at offset - ok, it says it does,
 // but JS does not have such a beast - here be dragons...
 proto.int64Write = function int64Write(high, low, offset) {
   offset = offset || 0;
@@ -67,6 +73,12 @@ proto.int32Read = function int32Read(offset) {
          (this[offset + 1] << 16) +
          (this[offset + 2] << 8) +
          this[offset + 3];
+};
+
+// Reads a 32 bit float from offset
+proto.float32Read = function float32Read(offset) {
+    offset = offset || 0;
+    return require('buffer_ieee754').readIEEE754(this, offset, true,23, 4);
 };
 
 //  With this func, you are responsible for dealing with the hi and
@@ -113,6 +125,12 @@ Buffer.makeWriter = function makeWriter() {
       data.push(b);
       return writer;
     },
+    float: function pushFloat32(number) {
+        var b = new Buffer(4);
+        b.float32Write(number);
+        data.push(b);
+        return writer;
+      },
     string: function pushString(string) {
       data.push(new Buffer(string, 'utf8'));
       return writer;
@@ -185,6 +203,11 @@ proto.toReader = function toReader() {
     int16: function shiftInt16() {
       var number = buffer.int16Read(offset);
       offset += 2;
+      return number;
+    },
+    float: function shiftFloat32() {
+      var number = buffer.float32Read(offset);
+      offset += 4;
       return number;
     },
     buffer: function shiftBuffer(length) {
