@@ -97,7 +97,7 @@ exports.SphinxClient = function() {
         "FLOAT":          5,
         "BIGINT":         6,
         "STRING":         7,
-        "MULTI":          0x40000000
+        "MULTI":          0x40000001
     };
 
     self.Sphinx = Sphinx;
@@ -736,7 +736,17 @@ exports.SphinxClient = function() {
                 // as it is covered by previous `if`
                 // @todo: implement MULTI attribute type
                 attr_value = response.int32();
-                match.attrs[output.attributes[attribute].name] = attr_value;
+
+                if (output.attributes[attribute].type == Sphinx.attribute.MULTI) {
+                    match.attrs[output.attributes[attribute].name] = [];
+                    for (var j = 0 ; j < attr_value; j++) {
+                        match.attrs[output.attributes[attribute].name].push(response.int32());
+                    }
+                }
+                else
+                {
+                    match.attrs[output.attributes[attribute].name] = attr_value;
+                }
             }
 
             output.matches.push(match);
