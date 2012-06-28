@@ -357,37 +357,37 @@ exports.SphinxClient = function() {
             request.push.int32(filter.exclude);
         }
 
-        request.push.int32(query_parameters.groupfunc);
-        request.push.lstring(query_parameters.groupby); // Groupby length
+        request.push.int32(query.groupfunc);
+        request.push.lstring(query.groupby); // Groupby length
 
-        request.push.int32(query_parameters.maxmatches); // Maxmatches, default to 1000
+        request.push.int32(query.maxmatches); // Maxmatches, default to 1000
 
-        request.push.lstring(query_parameters.groupsort); // Groupsort
+        request.push.lstring(query.groupsort); // Groupsort
 
-        request.push.int32(query_parameters.cutoff); // Cutoff
-        request.push.int32(query_parameters.retrycount); // Retrycount
-        request.push.int32(query_parameters.retrydelay); // Retrydelay
+        request.push.int32(query.cutoff); // Cutoff
+        request.push.int32(query.retrycount); // Retrycount
+        request.push.int32(query.retrydelay); // Retrydelay
 
-        request.push.lstring(query_parameters.groupdistinct); // Group distinct
+      request.push.lstring(query.groupdistinct); // Group distinct
 
-        if (query_parameters.anchor.length == 0) {
+        if (query.anchor.length == 0) {
             request.push.int32(0); // no anchor given
         } else {
-            if( sdebug ) console.log('Linestone: Anchor ', query_parameters.anchor);
+            if( sdebug ) console.log('Linestone: Anchor ', query.anchor);
             request.push.int32(1); // anchor point in radians
-            request.push.lstring(query_parameters.anchor["attrlat"]); // Group distinct
-            request.push.lstring(query_parameters.anchor["attrlong"]); // Group distinct
-    		request.push.float(query_parameters.anchor["lat"]);
-    		request.push.float(query_parameters.anchor["long"]);
+            request.push.lstring(query.anchor["attrlat"]); // Group distinct
+            request.push.lstring(query.anchor["attrlong"]); // Group distinct
+    		request.push.float(query.anchor["lat"]);
+    		request.push.float(query.anchor["long"]);
         }
 
-        request.push.int32(query_parameters.indexweights.length);
-        for (var i in query_parameters.indexweights) {
+        request.push.int32(query.indexweights.length);
+        for (var i in query.indexweights) {
             request.push.int32(i);
-            request.push.int32(query_parameters.indexweights[i]);
+            request.push.int32(query.indexweights[i]);
         }
 
-        request.push.int32(query_parameters.maxquerytime); 
+        request.push.int32(query.maxquerytime);
 	    // per-field weights (preferred method)
         request.push.int32(Object.keys(query.fieldweights).length);
         for (var field_name in query.fieldweights) {
@@ -395,24 +395,24 @@ exports.SphinxClient = function() {
             request.push.int32(query.fieldweights[field_name]);
         }
 
-        request.push.lstring(query_parameters.comment); 
+        request.push.lstring(query.comment);
 
-        request.push.int32(query_parameters.overrides.length);
-        for (var i in query_parameters.overrides) {
-            request.push.lstring(query_parameters.overrides[i].attr); 
-            request.push.int32(query_parameters.overrides[i].type);
-            request.push.int32(query_parameters.overrides[i].values.length);
-            for (var id in query_parameters.overrides[i].values) {
+        request.push.int32(query.overrides.length);
+        for (var i in query.overrides) {
+            request.push.lstring(query.overrides[i].attr);
+            request.push.int32(query.overrides[i].type);
+            request.push.int32(query.overrides[i].values.length);
+            for (var id in query.overrides[i].values) {
                 request.push.int64(id);
-                switch (query_parameters.overrides[i].type) {
+                switch (query.overrides[i].type) {
 	                case Sphinx.attribute.FLOAT:
-	                    request.push.float(query_parameters.overrides[i].values[id]);
+	                    request.push.float(query.overrides[i].values[id]);
 	                    break;
 	                case Sphinx.attribute.BIGINT:
-	                    request.push.int64(query_parameters.overrides[i].values[id]);
+	                    request.push.int64(query.overrides[i].values[id]);
 	                    break;
 	                default:
-	                    request.push.int32(query_parameters.overrides[i].values[id]);
+	                    request.push.int32(query.overrides[i].values[id]);
 	                    break;
                 }
             }
