@@ -564,7 +564,7 @@ exports.SphinxClient = function() {
     function readResponseData(data) {
         // Got response!
         response_output.append(data);
-	    response_output.runCallbackIfDone(_queue[0]['search_command']);
+	    response_output.runCallbackIfDone();
     }
 
     function initResponseOutput(query_callback) {
@@ -629,9 +629,10 @@ exports.SphinxClient = function() {
                 }// if RETRY
                 return errmsg;
             },
-            runCallbackIfDone : function(search_command) {
+            runCallbackIfDone : function() {
                 if (this.done()) {
                     var answer;
+                    var search_command =_queue[0]['search_command'];
                     var cloned = new Buffer(response_output.data.length);
                     // clone the response data, so we can dequeue and let the server free to modify again response_output
                     response_output.data.copy(cloned);
