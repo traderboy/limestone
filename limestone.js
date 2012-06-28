@@ -1,5 +1,7 @@
 var tcp = require('net');
 
+var sdebug = false;
+
 exports.SphinxClient = function() {
     var self = { };
 
@@ -151,18 +153,18 @@ exports.SphinxClient = function() {
 
         server_conn.addListener('connect', function () {
 
-            // console.log('Connected, sending protocol version... State is ' + server_conn.readyState);
+            if( sdebug ) console.log('Connected, sending protocol version... State is ' + server_conn.readyState);
             // Sending protocol version
-            // console.log('Sending version number...');
+            if( sdebug ) console.log('Sending version number...');
             // Here we must send 4 bytes, '0x00000001'
             if (server_conn.readyState == 'open') {
 		        var version_number = Buffer.makeWriter();
 		        version_number.push.int32(1);
                 // Waiting for answer
                 server_conn.once('data', function(data) {
-                    /*if (response_output) {
-                        console.log('connect: Data received from server');
-                    }*/
+                    if (response_output) {
+                        if( sdebug ) console.log('connect: Data received from server');
+                    }
 
 		    var protocol_version_raw = data.toReader();
                     var protocol_version = protocol_version_raw.int32();
@@ -226,11 +228,12 @@ exports.SphinxClient = function() {
 
     };
 
-    // console.log('Connecting to searchd...');
+    if( sdebug ) console.log('Connecting to searchd...');
 
     self.query = function(query_raw, callback) {
         var query = new Object();
 
+        if( sdebug ) console.log('Limestone query:', query_raw)
 
         // Default query parameters
         var query_parameters = {
@@ -283,7 +286,9 @@ exports.SphinxClient = function() {
             query = query_raw.toString();
         }
 
-	var request = Buffer.makeWriter(); 
+        if( sdebug ) console.log('Limestone query:', query)
+
+	var request = Buffer.makeWriter();
     request.push.int16(Sphinx.command.SEARCH);
 	request.push.int16(Sphinx.clientCommand.SEARCH);
 		
@@ -368,6 +373,7 @@ exports.SphinxClient = function() {
         if (query_parameters.anchor.length == 0) {
             request.push.int32(0); // no anchor given
         } else {
+            if( sdebug ) console.log('Linestone: Anchor ', query_parameters.anchor);
             request.push.int32(1); // anchor point in radians
             request.push.lstring(query_parameters.anchor["attrlat"]); // Group distinct
             request.push.lstring(query_parameters.anchor["attrlong"]); // Group distinct
@@ -576,7 +582,7 @@ exports.SphinxClient = function() {
                     this.status  = decoder.int16();
                     this.version = decoder.int16();
                     this.length  = decoder.int32();
-                    // console.log('Receiving answer with status ' + this.status + ', version ' + this.version + ' and length ' + this.length);
+                    if( sdebug ) console.log('Receiving answer with status ' + this.status + ', version ' + this.version + ' and length ' + this.length);
 
 		    this.data = this.data.slice(8, this.data.length);
                     // this.data = decoder.string(this.data.length - 8);
@@ -584,16 +590,16 @@ exports.SphinxClient = function() {
             },
             append  : function(data) {
                 //this.data.write(data.toString('utf-8'), 'utf-8');
-                // console.log('Appending ' + data.length + ' bytes');
+                if( sdebug ) console.log('Appending ' + data.length + ' bytes');
                 var new_buffer = new Buffer(this.data.length + data.length);
                 this.data.copy(new_buffer, 0, 0);
                 data.copy(new_buffer, this.data.length, 0);
                 this.data = new_buffer;
-                // console.log('Data length after appending: ' + this.data.length);
+                if( sdebug ) console.log('Data length after appending: ' + this.data.length);
                 this.parseHeader();
             },
             done : function() {
-                // console.log('Length: ' + this.data.length + ' / ' + this.length);
+                if( sdebug ) console.log('Length: ' + this.data.length + ' / ' + this.length);
                 return this.data.length >= this.length;
             },
             checkResponse : function(search_command) {
@@ -753,8 +759,10 @@ exports.SphinxClient = function() {
     };
 
     var parseExcerptResponse = function (data) {
+    if( sdebug ) console.log('limestone: parseExcerptResponse ');
 	var output = {'docs':[]};
 	var response = data.toReader();
+    if( sdebug ) console.log('limestone: parseExcerptResponse response ', response);
 	while(!response.empty()) {
 	    output.docs.push(response.lstring());
 	}
