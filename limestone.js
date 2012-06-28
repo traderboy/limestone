@@ -734,7 +734,7 @@ exports.SphinxClient = function() {
 
                 // FLOAT size attributes (32 bits)
                 if (output.attributes[attribute].type == Sphinx.attribute.FLOAT) {
-                    attr_value = response.int32();
+                    attr_value = response.float();
                     match.attrs[output.attributes[attribute].name] = attr_value;
                     continue;
                 }
