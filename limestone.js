@@ -381,10 +381,10 @@ exports.SphinxClient = function() {
     		request.push.float(query.anchor["long"]);
         }
 
-        request.push.int32(query.indexweights.length);
-        for (var i in query.indexweights) {
-            request.push.int32(i);
-            request.push.int32(query.indexweights[i]);
+        request.push.int32(Object.keys(query.indexweights).length);
+        for (var index_name in query.indexweights) {
+            request.push.lstring(index_name);
+            request.push.int32(query.indexweights[index_name]);
         }
 
         request.push.int32(query.maxquerytime);
