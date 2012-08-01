@@ -667,9 +667,16 @@ exports.SphinxClient = function() {
         var i;
         output.status = response.int32();
         if( sdebug ) console.log('limestone: output.status ', output.status);
-	if (output.status != 0) {
-		return(response.lstring());
-	}
+
+        if (output.status != 0) { // something ain't right with the response
+            if(output.status == 3){ // warning
+                output.warning = response.lstring()
+            }
+            else {
+                return(response.lstring());
+            }
+        }
+
         output.num_fields = response.int32();
         if( sdebug ) console.log('limestone: output.num_fields ', output.num_fields);
 
