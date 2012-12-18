@@ -32,7 +32,8 @@ exports.SphinxClient = function() {
         "MATCHANY"			: 5,
         "FIELDMASK"			: 6,
         "SPH04"				: 7,
-        "TOTAL"				: 8
+        "EXPR"              : 8,
+        "TOTAL"				: 9
     };
 
     Sphinx.sortMode = {
@@ -130,6 +131,7 @@ exports.SphinxClient = function() {
         anchor				: [],
         indexweights		: [],
         ranker				: Sphinx.rankingMode.PROXIMITY_BM25,
+        rankerexpr                  : "",
         maxquerytime		: 0,
         fieldweights				: {},
         overrides 			: [],
@@ -315,6 +317,9 @@ exports.SphinxClient = function() {
 
         request.push.int32(query.mode);
         request.push.int32(query.ranker);
+        if(query.ranker==Sphinx.rankingMode.RANK_EXPR)
+           request.push.lstring(query.rankerexpr);
+
 
         request.push.int32(query.sort);
 
