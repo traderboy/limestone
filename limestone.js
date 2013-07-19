@@ -285,7 +285,7 @@ exports.SphinxClient = function() {
 
         for(var i = 0; i < query.length; i++) {
             var extendedQuery = {};
-            for (prop in query_parameters) {
+            for (var prop in query_parameters) {
                 if (query[i].hasOwnProperty(prop)) {
                     extendedQuery[prop] = query[i][prop];
                 } else {
